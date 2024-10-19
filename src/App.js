@@ -1,64 +1,111 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import './App.css';
 
 function App() {
-  const [categories, setCategories] = useState([]);
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Form state for adding users
+  const [userForm, setUserForm] = useState({
+    name: '',
+    age: '',
+    sex: 'Male',  // Default to 'Male'
+    city: '',
+    state: ''
+  });
 
-  // Fetch categories and posts on component mount
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const categoriesResponse = await fetch('https://node-mysql.stacknow.dev/categories');
-        const categoriesData = await categoriesResponse.json();
-        setCategories(categoriesData);
+  // Handle form input change
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setUserForm({
+      ...userForm,
+      [name]: value
+    });
+  };
 
-        const postsResponse = await fetch('https://node-mysql.stacknow.dev/posts');
-        const postsData = await postsResponse.json();
-        setPosts(postsData);
-
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setLoading(false);
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('https://node-mysql-db.stacknow.dev/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userForm)
+      });
+      
+      if (response.ok) {
+        alert('User added successfully!');
+        // Clear the form
+        setUserForm({
+          name: '',
+          age: '',
+          sex: 'Male',
+          city: '',
+          state: ''
+        });
+      } else {
+        alert('Failed to add user.');
       }
+    } catch (error) {
+      console.error('Error adding user:', error);
     }
-
-    fetchData();
-  }, []);
-
-  if (loading) {
-    return <div className="loader">Loading...</div>;
-  }
+  };
 
   return (
     <div className="App">
-      <header>
-        <h1>Blog Categories and Posts</h1>
-      </header>
-      <div className="content">
-        <div className="categories">
-          <h2>Categories</h2>
-          <ul>
-            {categories.map((category) => (
-              <li key={category.id}>
-                <h3>{category.name}</h3>
-                <p>{category.description}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="posts">
-          <h2>Posts</h2>
-          {posts.map((post) => (
-            <div key={post.id} className="post-card">
-              <h3>{post.title}</h3>
-              <p>{post.content}</p>
-            </div>
-          ))}
-        </div>
+      {/* User form */}
+      <div className="user-form">
+        <h2>Add a User</h2>
+        <form onSubmit={handleSubmit}>
+          <label>
+            Name:
+            <input
+              type="text"
+              name="name"
+              value={userForm.name}
+              onChange={handleInputChange}
+              required
+            />
+          </label>
+          <label>
+            Age:
+            <input
+              type="number"
+              name="age"
+              value={userForm.age}
+              onChange={handleInputChange}
+              required
+            />
+          </label>
+          <label>
+            Sex:
+            <select name="sex" value={userForm.sex} onChange={handleInputChange}>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+          <label>
+            City:
+            <input
+              type="text"
+              name="city"
+              value={userForm.city}
+              onChange={handleInputChange}
+              required
+            />
+          </label>
+          <label>
+            State:
+            <input
+              type="text"
+              name="state"
+              value={userForm.state}
+              onChange={handleInputChange}
+              required
+            />
+          </label>
+          <button type="submit">Add User</button>
+        </form>
       </div>
     </div>
   );
